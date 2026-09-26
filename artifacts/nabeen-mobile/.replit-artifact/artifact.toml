@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/nabeen-mobile/"
+title = "nabeen Mobile"
+description = "A lightweight Android companion for the nabeen developer workspace, with personalized project shortcuts, Replit-style build surfaces, activity, and capability discovery."
+version = "1.0.0"
+id = "artifacts/nabeen-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/nabeen-mobile/" ]
+localPort = 22454
+
+[services.development]
+run = "pnpm --filter @workspace/nabeen-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/nabeen-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/nabeen-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "22454"
+BASE_PATH = "/nabeen-mobile/"

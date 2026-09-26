@@ -1,1 +1,2 @@
 - [Generated fetch client typing](typescript-dom-iterable.md) — include DOM iterable typings when generated API helpers use Headers.entries().
+- [Expo web font fallback](expo-web-font-fallback.md) — allow web preview to render with system fonts when remote font hydration stalls; keep native font gating.
