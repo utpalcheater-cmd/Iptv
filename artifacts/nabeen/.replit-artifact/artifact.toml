@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "nabeen"
+description = "A polished Replit-style developer workspace for organizing projects, exploring AI-assisted building, managing files, viewing activity, and connecting future integrations in one focused home."
+version = "1.0.0"
+id = "artifacts/nabeen"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18828
+
+[services.development]
+run = "pnpm --filter @workspace/nabeen run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/nabeen", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/nabeen/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18828"
+BASE_PATH = "/"

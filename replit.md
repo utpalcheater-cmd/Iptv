@@ -1,10 +1,11 @@
-# [Project name]
+# nabeen
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+nabeen is a Replit-style personal developer workspace for starting projects, tracking activity, and discovering the next capabilities to add.
 
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/nabeen run dev` — run the nabeen web app
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -22,23 +23,31 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/nabeen/src/App.tsx` — frontend routes, shell, and workspace screens
+- `artifacts/nabeen/src/index.css` — nabeen theme tokens and responsive styling
+- `artifacts/api-server/src/routes/` — API route handlers
+- `lib/api-spec/openapi.yaml` — source of truth for the typed API contract
+- `lib/db/src/schema/` — Drizzle schema for nabeen projects and activity
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The web app is a root-mounted React/Vite artifact and uses the shared API server through `/api`.
+- API contracts are defined in OpenAPI first, then generated into `@workspace/api-client-react` and `@workspace/api-zod`.
+- The first build uses workspace-scoped project and activity tables with a small seed set so the dashboard is useful immediately.
+- Product areas that are not implemented yet are represented in the capabilities catalog instead of being presented as fake working flows.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+nabeen currently includes a dashboard, project CRUD, project detail views, activity feed, capability discovery, settings screens, responsive navigation, loading/error/empty states, and a clear path toward AI building, code workspaces, deployments, collaboration, and integrations.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- The product name is `nabeen`.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Run API code generation after changing `lib/api-spec/openapi.yaml`.
+- Artifact workflows provide `PORT` and `BASE_PATH`; use the managed workflow rather than starting Vite manually.
 
 ## Pointers
 
