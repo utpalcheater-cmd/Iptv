@@ -8,6 +8,17 @@
 
 export * from './activity';
 export * from './activityType';
+export * from './agentBootstrap';
+export * from './agentChatInput';
+export * from './agentConversation';
+export * from './agentFile';
+export * from './agentFileInput';
+export * from './agentFileSummary';
+export * from './agentMemory';
+export * from './agentMessage';
+export * from './agentMessageRole';
+export * from './agentProject';
+export * from './agentProjectInput';
 export * from './capability';
 export * from './capabilityStatus';
 export * from './dashboard';

@@ -204,3 +204,167 @@ export const ListActivityResponseItem = zod.object({
 export const ListActivityResponse = zod.array(ListActivityResponseItem)
 
 
+/**
+ * Returns the owner's projects, recent conversations, and saved memories.
+ * @summary Load the personal coding workspace
+ */
+export const GetAgentBootstrapResponse = zod.object({
+  "projects": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "language": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})),
+  "conversations": zod.array(zod.object({
+  "id": zod.string(),
+  "projectId": zod.string(),
+  "title": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})),
+  "memories": zod.array(zod.object({
+  "id": zod.string(),
+  "content": zod.string(),
+  "category": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Create a coding project
+ */
+export const createAgentProjectBodyNameMax = 80;
+
+export const createAgentProjectBodyDescriptionMax = 500;
+
+export const createAgentProjectBodyLanguageMax = 40;
+
+
+
+export const CreateAgentProjectBody = zod.object({
+  "name": zod.string().min(1).max(createAgentProjectBodyNameMax),
+  "description": zod.string().max(createAgentProjectBodyDescriptionMax).optional(),
+  "language": zod.string().min(1).max(createAgentProjectBodyLanguageMax)
+})
+
+export const CreateAgentProjectResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "language": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List files in a coding project
+ */
+export const ListAgentProjectFilesParams = zod.object({
+  "projectId": zod.coerce.string()
+})
+
+export const ListAgentProjectFilesResponseItem = zod.object({
+  "id": zod.string(),
+  "projectId": zod.string(),
+  "path": zod.string(),
+  "sizeBytes": zod.number().int(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListAgentProjectFilesResponse = zod.array(ListAgentProjectFilesResponseItem)
+
+
+/**
+ * @summary Create or update a coding project file
+ */
+export const SaveAgentProjectFileParams = zod.object({
+  "projectId": zod.coerce.string()
+})
+
+export const saveAgentProjectFileBodyPathMax = 240;
+
+export const saveAgentProjectFileBodyContentMax = 524288;
+
+
+
+export const SaveAgentProjectFileBody = zod.object({
+  "path": zod.string().min(1).max(saveAgentProjectFileBodyPathMax),
+  "content": zod.string().max(saveAgentProjectFileBodyContentMax)
+})
+
+export const SaveAgentProjectFileResponse = zod.object({
+  "id": zod.string(),
+  "projectId": zod.string(),
+  "path": zod.string(),
+  "sizeBytes": zod.number().int(),
+  "updatedAt": zod.coerce.date()
+}).and(zod.object({
+  "content": zod.string()
+}))
+
+
+/**
+ * @summary Read a project file
+ */
+export const GetAgentProjectFileParams = zod.object({
+  "projectId": zod.coerce.string(),
+  "fileId": zod.coerce.string()
+})
+
+export const GetAgentProjectFileResponse = zod.object({
+  "id": zod.string(),
+  "projectId": zod.string(),
+  "path": zod.string(),
+  "sizeBytes": zod.number().int(),
+  "updatedAt": zod.coerce.date()
+}).and(zod.object({
+  "content": zod.string()
+}))
+
+
+/**
+ * @summary Load messages from a coding conversation
+ */
+export const ListAgentConversationMessagesParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const ListAgentConversationMessagesResponseItem = zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAgentConversationMessagesResponse = zod.array(ListAgentConversationMessagesResponseItem)
+
+
+/**
+ * @summary Send a coding request and stream the agent response
+ */
+export const sendAgentMessageBodyMessageMax = 12000;
+
+
+
+export const SendAgentMessageBody = zod.object({
+  "projectId": zod.string(),
+  "conversationId": zod.string().nullish(),
+  "message": zod.string().min(1).max(sendAgentMessageBodyMessageMax)
+})
+
+export const SendAgentMessageResponse = zod.unknown()
+
+
+/**
+ * @summary Delete a saved personal memory
+ */
+export const DeleteAgentMemoryParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteAgentMemoryResponse = zod.void()
+
+

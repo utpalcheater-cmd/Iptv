@@ -21,6 +21,14 @@ import type {
 
 import type {
   Activity,
+  AgentBootstrap,
+  AgentChatInput,
+  AgentFile,
+  AgentFileInput,
+  AgentFileSummary,
+  AgentMessage,
+  AgentProject,
+  AgentProjectInput,
   Capability,
   Dashboard,
   HealthStatus,
@@ -787,4 +795,657 @@ export function useListActivity<TData = Awaited<ReturnType<typeof listActivity>>
 
 
 
+
+export const getGetAgentBootstrapUrl = () => {
+
+
+
+
+  return `/api/agent/bootstrap`
+}
+
+/**
+ * Returns the owner's projects, recent conversations, and saved memories.
+ * @summary Load the personal coding workspace
+ */
+export const getAgentBootstrap = async ( options?: Parameters<typeof customFetch>[1]): Promise<AgentBootstrap> => {
+
+  return customFetch<AgentBootstrap>(getGetAgentBootstrapUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAgentBootstrapQueryKey = () => {
+    return [
+    `/api/agent/bootstrap`
+    ] as const;
+    }
+
+
+export const getGetAgentBootstrapQueryOptions = <TData = Awaited<ReturnType<typeof getAgentBootstrap>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAgentBootstrap>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAgentBootstrapQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAgentBootstrap>>> = ({ signal }) => getAgentBootstrap({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAgentBootstrap>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAgentBootstrapQueryResult = NonNullable<Awaited<ReturnType<typeof getAgentBootstrap>>>
+export type GetAgentBootstrapQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Load the personal coding workspace
+ */
+
+export function useGetAgentBootstrap<TData = Awaited<ReturnType<typeof getAgentBootstrap>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAgentBootstrap>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAgentBootstrapQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAgentProjectUrl = () => {
+
+
+
+
+  return `/api/agent/projects`
+}
+
+/**
+ * @summary Create a coding project
+ */
+export const createAgentProject = async (agentProjectInput: AgentProjectInput, options?: Parameters<typeof customFetch>[1]): Promise<AgentProject> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AgentProject>(getCreateAgentProjectUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(agentProjectInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAgentProjectMutationKey = () => ['createAgentProject'] as const;
+
+export const getCreateAgentProjectMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAgentProject>>, TError,CreateAgentProjectMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAgentProject>>, TError,CreateAgentProjectMutationVariables, TContext> => {
+
+const mutationKey = getCreateAgentProjectMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAgentProject>>, CreateAgentProjectMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAgentProject(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAgentProjectMutationResult = NonNullable<Awaited<ReturnType<typeof createAgentProject>>>
+    export type CreateAgentProjectMutationBody = BodyType<AgentProjectInput>
+    export type CreateAgentProjectMutationError = ErrorType<unknown>
+    export type CreateAgentProjectMutationVariables = {data: BodyType<AgentProjectInput>}
+
+    /**
+ * @summary Create a coding project
+ */
+export const useCreateAgentProject = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAgentProject>>, TError,CreateAgentProjectMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAgentProject>>,
+        TError,
+        CreateAgentProjectMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateAgentProjectMutationOptions(options));
+    }
+
+export const getListAgentProjectFilesUrl = (projectId: string,) => {
+
+
+
+
+  return `/api/agent/projects/${projectId}/files`
+}
+
+/**
+ * @summary List files in a coding project
+ */
+export const listAgentProjectFiles = async (projectId: string, options?: Parameters<typeof customFetch>[1]): Promise<AgentFileSummary[]> => {
+
+  return customFetch<AgentFileSummary[]>(getListAgentProjectFilesUrl(projectId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAgentProjectFilesQueryKey = (projectId: string,) => {
+    return [
+    `/api/agent/projects/${projectId}/files`
+    ] as const;
+    }
+
+
+export const getListAgentProjectFilesQueryOptions = <TData = Awaited<ReturnType<typeof listAgentProjectFiles>>, TError = ErrorType<unknown>>(projectId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAgentProjectFiles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAgentProjectFilesQueryKey(projectId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAgentProjectFiles>>> = ({ signal }) => listAgentProjectFiles(projectId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: projectId !== null && projectId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAgentProjectFiles>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAgentProjectFilesQueryResult = NonNullable<Awaited<ReturnType<typeof listAgentProjectFiles>>>
+export type ListAgentProjectFilesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List files in a coding project
+ */
+
+export function useListAgentProjectFiles<TData = Awaited<ReturnType<typeof listAgentProjectFiles>>, TError = ErrorType<unknown>>(
+ projectId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAgentProjectFiles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAgentProjectFilesQueryOptions(projectId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveAgentProjectFileUrl = (projectId: string,) => {
+
+
+
+
+  return `/api/agent/projects/${projectId}/files`
+}
+
+/**
+ * @summary Create or update a coding project file
+ */
+export const saveAgentProjectFile = async (projectId: string,
+    agentFileInput: AgentFileInput, options?: Parameters<typeof customFetch>[1]): Promise<AgentFile> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AgentFile>(getSaveAgentProjectFileUrl(projectId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(agentFileInput)
+  }
+);}
+
+
+
+
+
+export const getSaveAgentProjectFileMutationKey = () => ['saveAgentProjectFile'] as const;
+
+export const getSaveAgentProjectFileMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveAgentProjectFile>>, TError,SaveAgentProjectFileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveAgentProjectFile>>, TError,SaveAgentProjectFileMutationVariables, TContext> => {
+
+const mutationKey = getSaveAgentProjectFileMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveAgentProjectFile>>, SaveAgentProjectFileMutationVariables> = (props) => {
+          const {projectId,data} = props ?? {};
+
+          return  saveAgentProjectFile(projectId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveAgentProjectFileMutationResult = NonNullable<Awaited<ReturnType<typeof saveAgentProjectFile>>>
+    export type SaveAgentProjectFileMutationBody = BodyType<AgentFileInput>
+    export type SaveAgentProjectFileMutationError = ErrorType<unknown>
+    export type SaveAgentProjectFileMutationVariables = {projectId: string;data: BodyType<AgentFileInput>}
+
+    /**
+ * @summary Create or update a coding project file
+ */
+export const useSaveAgentProjectFile = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveAgentProjectFile>>, TError,SaveAgentProjectFileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveAgentProjectFile>>,
+        TError,
+        SaveAgentProjectFileMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveAgentProjectFileMutationOptions(options));
+    }
+
+export const getGetAgentProjectFileUrl = (projectId: string,
+    fileId: string,) => {
+
+
+
+
+  return `/api/agent/projects/${projectId}/files/${fileId}`
+}
+
+/**
+ * @summary Read a project file
+ */
+export const getAgentProjectFile = async (projectId: string,
+    fileId: string, options?: Parameters<typeof customFetch>[1]): Promise<AgentFile> => {
+
+  return customFetch<AgentFile>(getGetAgentProjectFileUrl(projectId,fileId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAgentProjectFileQueryKey = (projectId: string,
+    fileId: string,) => {
+    return [
+    `/api/agent/projects/${projectId}/files/${fileId}`
+    ] as const;
+    }
+
+
+export const getGetAgentProjectFileQueryOptions = <TData = Awaited<ReturnType<typeof getAgentProjectFile>>, TError = ErrorType<void>>(projectId: string,
+    fileId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAgentProjectFile>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAgentProjectFileQueryKey(projectId,fileId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAgentProjectFile>>> = ({ signal }) => getAgentProjectFile(projectId,fileId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: projectId !== null && projectId !== undefined && fileId !== null && fileId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAgentProjectFile>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAgentProjectFileQueryResult = NonNullable<Awaited<ReturnType<typeof getAgentProjectFile>>>
+export type GetAgentProjectFileQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read a project file
+ */
+
+export function useGetAgentProjectFile<TData = Awaited<ReturnType<typeof getAgentProjectFile>>, TError = ErrorType<void>>(
+ projectId: string,
+    fileId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAgentProjectFile>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAgentProjectFileQueryOptions(projectId,fileId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListAgentConversationMessagesUrl = (id: string,) => {
+
+
+
+
+  return `/api/agent/conversations/${id}/messages`
+}
+
+/**
+ * @summary Load messages from a coding conversation
+ */
+export const listAgentConversationMessages = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<AgentMessage[]> => {
+
+  return customFetch<AgentMessage[]>(getListAgentConversationMessagesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAgentConversationMessagesQueryKey = (id: string,) => {
+    return [
+    `/api/agent/conversations/${id}/messages`
+    ] as const;
+    }
+
+
+export const getListAgentConversationMessagesQueryOptions = <TData = Awaited<ReturnType<typeof listAgentConversationMessages>>, TError = ErrorType<unknown>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAgentConversationMessages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAgentConversationMessagesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAgentConversationMessages>>> = ({ signal }) => listAgentConversationMessages(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAgentConversationMessages>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAgentConversationMessagesQueryResult = NonNullable<Awaited<ReturnType<typeof listAgentConversationMessages>>>
+export type ListAgentConversationMessagesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Load messages from a coding conversation
+ */
+
+export function useListAgentConversationMessages<TData = Awaited<ReturnType<typeof listAgentConversationMessages>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAgentConversationMessages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAgentConversationMessagesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSendAgentMessageUrl = () => {
+
+
+
+
+  return `/api/agent/chat`
+}
+
+/**
+ * @summary Send a coding request and stream the agent response
+ */
+export const sendAgentMessage = async (agentChatInput: AgentChatInput, options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<unknown>(getSendAgentMessageUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(agentChatInput)
+  }
+);}
+
+
+
+
+
+export const getSendAgentMessageMutationKey = () => ['sendAgentMessage'] as const;
+
+export const getSendAgentMessageMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendAgentMessage>>, TError,SendAgentMessageMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendAgentMessage>>, TError,SendAgentMessageMutationVariables, TContext> => {
+
+const mutationKey = getSendAgentMessageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendAgentMessage>>, SendAgentMessageMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendAgentMessage(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendAgentMessageMutationResult = NonNullable<Awaited<ReturnType<typeof sendAgentMessage>>>
+    export type SendAgentMessageMutationBody = BodyType<AgentChatInput>
+    export type SendAgentMessageMutationError = ErrorType<unknown>
+    export type SendAgentMessageMutationVariables = {data: BodyType<AgentChatInput>}
+
+    /**
+ * @summary Send a coding request and stream the agent response
+ */
+export const useSendAgentMessage = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendAgentMessage>>, TError,SendAgentMessageMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendAgentMessage>>,
+        TError,
+        SendAgentMessageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSendAgentMessageMutationOptions(options));
+    }
+
+export const getDeleteAgentMemoryUrl = (id: string,) => {
+
+
+
+
+  return `/api/agent/memories/${id}`
+}
+
+/**
+ * @summary Delete a saved personal memory
+ */
+export const deleteAgentMemory = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteAgentMemoryUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteAgentMemoryMutationKey = () => ['deleteAgentMemory'] as const;
+
+export const getDeleteAgentMemoryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAgentMemory>>, TError,DeleteAgentMemoryMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAgentMemory>>, TError,DeleteAgentMemoryMutationVariables, TContext> => {
+
+const mutationKey = getDeleteAgentMemoryMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAgentMemory>>, DeleteAgentMemoryMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAgentMemory(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAgentMemoryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAgentMemory>>>
+
+    export type DeleteAgentMemoryMutationError = ErrorType<void>
+    export type DeleteAgentMemoryMutationVariables = {id: string}
+
+    /**
+ * @summary Delete a saved personal memory
+ */
+export const useDeleteAgentMemory = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAgentMemory>>, TError,DeleteAgentMemoryMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAgentMemory>>,
+        TError,
+        DeleteAgentMemoryMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteAgentMemoryMutationOptions(options));
+    }
 

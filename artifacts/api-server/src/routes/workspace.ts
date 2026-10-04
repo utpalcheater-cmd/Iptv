@@ -6,6 +6,7 @@ import {
   GetDashboardResponse,
 } from "@workspace/api-zod";
 import { ensureSeeded, getRecentActivity, getRecentProjects } from "../lib/seed";
+import { requireNabeenOwner } from "../middlewares/nabeenOwner";
 
 const router: IRouter = Router();
 
@@ -54,7 +55,7 @@ const capabilities = [
   },
 ] as const;
 
-router.get("/dashboard", async (_req, res): Promise<void> => {
+router.get("/dashboard", requireNabeenOwner, async (_req, res): Promise<void> => {
   await ensureSeeded();
   const [{ totalProjects }] = await db.select({ totalProjects: count() }).from(projectsTable);
   const [{ activeProjects }] = await db.select({ activeProjects: count() }).from(projectsTable).where(eq(projectsTable.status, "active"));

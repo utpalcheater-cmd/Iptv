@@ -19,3 +19,8 @@
 
 export * from "./projects";
 export * from "./activity";
+export * from "./agent-projects";
+export * from "./agent-files";
+export * from "./agent-conversations";
+export * from "./agent-messages";
+export * from "./agent-memories";

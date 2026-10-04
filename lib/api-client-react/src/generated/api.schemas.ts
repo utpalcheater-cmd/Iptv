@@ -130,6 +130,100 @@ export interface Capability {
   category: string;
 }
 
+export interface AgentProject {
+  id: string;
+  name: string;
+  description: string;
+  language: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AgentProjectInput {
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  name: string;
+  /** @maxLength 500 */
+  description?: string;
+  /**
+     * @minLength 1
+     * @maxLength 40
+     */
+  language: string;
+}
+
+export interface AgentFileSummary {
+  id: string;
+  projectId: string;
+  path: string;
+  sizeBytes: number;
+  updatedAt: string;
+}
+
+export type AgentFile = AgentFileSummary & {
+  content: string;
+};
+
+export interface AgentFileInput {
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  path: string;
+  /** @maxLength 524288 */
+  content: string;
+}
+
+export interface AgentConversation {
+  id: string;
+  projectId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AgentMessageRole = typeof AgentMessageRole[keyof typeof AgentMessageRole];
+
+
+export const AgentMessageRole = {
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export interface AgentMessage {
+  id: string;
+  conversationId: string;
+  role: AgentMessageRole;
+  content: string;
+  createdAt: string;
+}
+
+export interface AgentMemory {
+  id: string;
+  content: string;
+  category: string;
+  createdAt: string;
+}
+
+export interface AgentBootstrap {
+  projects: AgentProject[];
+  conversations: AgentConversation[];
+  memories: AgentMemory[];
+}
+
+export interface AgentChatInput {
+  projectId: string;
+  /** @nullable */
+  conversationId?: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 12000
+     */
+  message: string;
+}
+
 export type ListProjectsParams = {
 q?: string;
 status?: ListProjectsStatus;

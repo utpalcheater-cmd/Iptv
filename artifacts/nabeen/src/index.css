@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@layer theme, base, clerk, components, utilities;
 @import 'tailwindcss';
+@import '@clerk/themes/shadcn.css';
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
@@ -122,6 +124,9 @@
 .health-dot { width: 7px; height: 7px; border-radius: 50%; background: #71c998; box-shadow: 0 0 0 4px rgba(113,201,152,.12); }
 .health-caption { margin-top: 7px; color: hsl(var(--sidebar-foreground) / .54); font-size: .68rem; line-height: 1.45; }
 .rail-profile { display: flex; align-items: center; gap: 10px; padding: 9px 10px; }
+.rail-signout { display: grid; justify-items: center; gap: 3px; margin-left: auto; padding: 5px 3px; color: hsl(var(--sidebar-foreground) / .55); background: transparent; border: 0; cursor: pointer; font-size: .54rem; }
+.rail-signout:hover { color: hsl(var(--sidebar-foreground)); }
+.rail-signout svg { width: 15px; height: 15px; }
 .profile-orb { display: grid; place-items: center; width: 31px; height: 31px; color: hsl(var(--sidebar-primary-foreground)); background: hsl(var(--sidebar-primary)); border-radius: 50%; font-size: .7rem; font-weight: 700; }
 .profile-text { min-width: 0; }
 .profile-name { color: hsl(var(--sidebar-foreground)); font-size: .77rem; font-weight: 700; }

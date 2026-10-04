@@ -16,6 +16,8 @@ tags:
     description: Project lifecycle operations
   - name: activity
     description: Workspace activity feed
+  - name: agent
+    description: Owner-only AI coding workspace, projects, files, and memory
 paths:
   /healthz:
     get:
@@ -173,9 +175,160 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Activity"
+  /agent/bootstrap:
+    get:
+      operationId: getAgentBootstrap
+      tags: [agent]
+      summary: Load the personal coding workspace
+      description: Returns the owner's projects, recent conversations, and saved memories.
+      responses:
+        "200":
+          description: Workspace data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentBootstrap"
+  /agent/projects:
+    post:
+      operationId: createAgentProject
+      tags: [agent]
+      summary: Create a coding project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentProjectInput"
+      responses:
+        "201":
+          description: Created coding project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentProject"
+  /agent/projects/{projectId}/files:
+    get:
+      operationId: listAgentProjectFiles
+      tags: [agent]
+      summary: List files in a coding project
+      parameters:
+        - $ref: "#/components/parameters/AgentProjectId"
+      responses:
+        "200":
+          description: Project file list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentFileSummary"
+    put:
+      operationId: saveAgentProjectFile
+      tags: [agent]
+      summary: Create or update a coding project file
+      parameters:
+        - $ref: "#/components/parameters/AgentProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentFileInput"
+      responses:
+        "200":
+          description: Saved project file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentFile"
+  /agent/projects/{projectId}/files/{fileId}:
+    get:
+      operationId: getAgentProjectFile
+      tags: [agent]
+      summary: Read a project file
+      parameters:
+        - $ref: "#/components/parameters/AgentProjectId"
+        - $ref: "#/components/parameters/AgentFileId"
+      responses:
+        "200":
+          description: Project file contents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentFile"
+        "404":
+          description: File not found
+  /agent/conversations/{id}/messages:
+    get:
+      operationId: listAgentConversationMessages
+      tags: [agent]
+      summary: Load messages from a coding conversation
+      parameters:
+        - $ref: "#/components/parameters/AgentConversationId"
+      responses:
+        "200":
+          description: Conversation messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentMessage"
+  /agent/chat:
+    post:
+      operationId: sendAgentMessage
+      tags: [agent]
+      summary: Send a coding request and stream the agent response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentChatInput"
+      responses:
+        "200":
+          description: Server-sent events for status, text, and completion
+          content:
+            text/event-stream: {}
+  /agent/memories/{id}:
+    delete:
+      operationId: deleteAgentMemory
+      tags: [agent]
+      summary: Delete a saved personal memory
+      parameters:
+        - $ref: "#/components/parameters/AgentMemoryId"
+      responses:
+        "204":
+          description: Memory deleted
+        "404":
+          description: Memory not found
 components:
   parameters:
     ProjectId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    AgentProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+    AgentFileId:
+      name: fileId
+      in: path
+      required: true
+      schema:
+        type: string
+    AgentConversationId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    AgentMemoryId:
       name: id
       in: path
       required: true
@@ -328,4 +481,144 @@ components:
         category:
           type: string
       required: [id, label, description, status, category]
+    AgentProject:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        language:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, name, description, language, createdAt, updatedAt]
+    AgentProjectInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        description:
+          type: string
+          maxLength: 500
+        language:
+          type: string
+          minLength: 1
+          maxLength: 40
+      required: [name, language]
+    AgentFileSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        path:
+          type: string
+        sizeBytes:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, projectId, path, sizeBytes, updatedAt]
+    AgentFile:
+      allOf:
+        - $ref: "#/components/schemas/AgentFileSummary"
+        - type: object
+          properties:
+            content:
+              type: string
+          required: [content]
+    AgentFileInput:
+      type: object
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 240
+        content:
+          type: string
+          maxLength: 524288
+      required: [path, content]
+    AgentConversation:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, projectId, title, createdAt, updatedAt]
+    AgentMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        conversationId:
+          type: string
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, conversationId, role, content, createdAt]
+    AgentMemory:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, content, category, createdAt]
+    AgentBootstrap:
+      type: object
+      properties:
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentProject"
+        conversations:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentConversation"
+        memories:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentMemory"
+      required: [projects, conversations, memories]
+    AgentChatInput:
+      type: object
+      properties:
+        projectId:
+          type: string
+        conversationId:
+          type: ["string", "null"]
+        message:
+          type: string
+          minLength: 1
+          maxLength: 12000
+      required: [projectId, message]
 

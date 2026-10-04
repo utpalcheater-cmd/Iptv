@@ -1,5 +1,8 @@
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
+import { ClerkProvider, SignIn, SignUp, useAuth, useClerk } from '@clerk/react';
+import { publishableKeyFromHost } from '@clerk/react/internal';
+import { shadcn } from '@clerk/themes';
 import {
   Archive,
   ArrowLeft,
@@ -19,6 +22,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   LockKeyhole,
+  LogOut,
   Menu,
   Pencil,
   Plus,
@@ -47,13 +51,103 @@ import {
   useUpdateProject,
 } from '@workspace/api-client-react';
 import type { Activity, Capability, Project } from '@workspace/api-client-react';
-import { Link, Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
+import { Link, Redirect, Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import AgentWorkbench from '@/components/agent-workbench';
+import PublicHome from '@/pages/public-home';
 import NotFound from '@/pages/not-found';
 
 const queryClient = new QueryClient();
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+const clerkPubKey = publishableKeyFromHost(
+  window.location.hostname,
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+);
+const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+
+function stripBase(path: string): string {
+  return basePath && path.startsWith(basePath)
+    ? path.slice(basePath.length) || '/'
+    : path;
+}
+
+if (!clerkPubKey) {
+  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY.');
+}
+
+const clerkAppearance = {
+  theme: shadcn,
+  cssLayerName: 'clerk',
+  options: {
+    logoPlacement: 'inside' as const,
+    logoLinkUrl: basePath || '/',
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+  },
+  variables: {
+    colorPrimary: '#d96c50',
+    colorForeground: '#253044',
+    colorMutedForeground: '#667184',
+    colorDanger: '#bd4843',
+    colorBackground: '#fbf9f4',
+    colorInput: '#fffdf9',
+    colorInputForeground: '#253044',
+    colorNeutral: '#ded8cc',
+    fontFamily: 'DM Sans, ui-sans-serif, sans-serif',
+    borderRadius: '0.9rem',
+  },
+  elements: {
+    rootBox: { width: '100%', display: 'flex', justifyContent: 'center' },
+    cardBox: {
+      width: '440px',
+      maxWidth: '100%',
+      overflow: 'hidden',
+      backgroundColor: '#fbf9f4',
+      borderRadius: '18px',
+      boxShadow: '0 22px 60px rgba(38, 47, 64, .14)',
+    },
+    card: { border: 'none', boxShadow: 'none', backgroundColor: 'transparent' },
+    footer: { border: 'none', boxShadow: 'none', backgroundColor: 'transparent' },
+    headerTitle: { color: '#253044', fontFamily: 'Space Grotesk, sans-serif' },
+    headerSubtitle: { color: '#667184' },
+    socialButtonsBlockButtonText: { color: '#253044' },
+    formFieldLabel: { color: '#354154' },
+    footerActionLink: { color: '#b95e46' },
+    footerActionText: { color: '#667184' },
+    dividerText: { color: '#788293' },
+    identityPreviewEditButton: { color: '#b95e46' },
+    formFieldSuccessText: { color: '#47775e' },
+    alertText: { color: '#253044' },
+    logoBox: { justifyContent: 'center' },
+    logoImage: { maxHeight: '42px' },
+    socialButtonsBlockButton: {
+      borderColor: '#ded8cc',
+      backgroundColor: '#fffdf9',
+      color: '#253044',
+    },
+    formButtonPrimary: {
+      color: '#fffaf1',
+      backgroundColor: '#d96c50',
+      boxShadow: 'none',
+    },
+    formFieldInput: {
+      color: '#253044',
+      backgroundColor: '#fffdf9',
+      borderColor: '#ded8cc',
+    },
+    footerAction: { backgroundColor: 'transparent' },
+    dividerLine: { backgroundColor: '#ded8cc' },
+    alert: { backgroundColor: '#f6e9df', borderColor: '#e9c9ba' },
+    otpCodeFieldInput: {
+      color: '#253044',
+      backgroundColor: '#fffdf9',
+      borderColor: '#ded8cc',
+    },
+    formFieldRow: { color: '#253044' },
+    main: { backgroundColor: 'transparent' },
+  },
+};
 
 function formatDate(value: string, withYear = false) {
   const date = new Date(value);
@@ -102,7 +196,8 @@ function AppShell({ children, showNotice }: { children: ReactNode; showNotice: (
   const [railOpen, setRailOpen] = useState(false);
   const isActive = (href: string) => href === '/' ? location === '/' : location.startsWith(href);
   const nav = [
-    { href: '/', label: 'Overview', icon: LayoutDashboard },
+    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+    { href: '/agent', label: 'Agent workbench', icon: Sparkles },
     { href: '/projects', label: 'Projects', icon: FolderGit2 },
     { href: '/activity', label: 'Activity', icon: CircleDashed },
     { href: '/capabilities', label: 'Capabilities', icon: Sparkles },
@@ -110,7 +205,7 @@ function AppShell({ children, showNotice }: { children: ReactNode; showNotice: (
   return (
     <div className="nabeen-app">
       <aside className={`nabeen-rail ${railOpen ? 'open' : ''}`} data-testid="sidebar-navigation">
-        <Link href="/" className="rail-brand" data-testid="link-brand">
+        <Link href="/dashboard" className="rail-brand" data-testid="link-brand">
           <span className="brand-mark"><span /></span>
           <span><span className="brand-name">nabeen</span><span className="brand-sub">personal command center</span></span>
         </Link>
@@ -130,13 +225,14 @@ function AppShell({ children, showNotice }: { children: ReactNode; showNotice: (
           <div className="rail-profile">
             <span className="profile-orb">NW</span>
             <span className="profile-text"><span className="profile-name">Nabeen workspace</span><span className="profile-role">Personal space</span></span>
+            <SignOutButton />
           </div>
         </div>
       </aside>
       {railOpen && <button className="mobile-only" aria-label="Close navigation" onClick={() => setRailOpen(false)} data-testid="button-close-navigation" />}
       <div className="nabeen-main">
         <header className="topbar">
-          <div className="topbar-context"><strong>Personal workspace</strong><span> / </span><span>{location === '/' ? 'Overview' : location.split('/')[1]?.replace('-', ' ')}</span></div>
+          <div className="topbar-context"><strong>Personal workspace</strong><span> / </span><span>{location === '/dashboard' ? 'Overview' : location.split('/')[1]?.replace('-', ' ')}</span></div>
           <div className="topbar-actions">
             <button className="icon-button mobile-menu" aria-label="Open navigation" onClick={() => setRailOpen(true)} data-testid="button-open-navigation"><Menu /></button>
             <button className="icon-button" aria-label="Keyboard shortcuts" onClick={() => showNotice('Shortcuts are coming soon.')} data-testid="button-shortcuts"><Command /></button>
@@ -272,15 +368,94 @@ function SettingsPage({ showNotice }: { showNotice: (message: string, tone?: Not
   return <div className="workspace"><PageHeading eyebrow="Workspace / Settings" title="Settings" intro="A few quiet controls for how nabeen meets you each day." /><div className="settings-layout"><nav className="settings-nav" aria-label="Settings sections">{['Workspace', 'Notifications', 'Account'].map((item) => <button className={active === item ? 'active' : ''} key={item} onClick={() => setActive(item)} data-testid={`button-settings-${item.toLowerCase()}`}>{item}</button>)}</nav><div>{active === 'Workspace' && <section className="panel settings-section" data-testid="section-workspace-settings"><h2>Workspace preferences</h2><p>Make the command center feel like yours.</p><div className="settings-row"><div><div className="settings-row-title">Workspace name</div><div className="settings-row-copy">Shown in your sidebar and project context.</div></div><input className="input" style={{ maxWidth: 210 }} value={profileName} onChange={(e) => setProfileName(e.target.value)} data-testid="input-workspace-name" /></div><div className="settings-row"><div><div className="settings-row-title">Compact project rows</div><div className="settings-row-copy">Fit more of your project shelf on one screen.</div></div><button className={`switch ${compact ? 'on' : ''}`} aria-label="Toggle compact project rows" onClick={() => setCompact(!compact)} data-testid="switch-compact-projects" /></div><div className="settings-row"><div><div className="settings-row-title">Save changes</div><div className="settings-row-copy">Preferences stay local to this workspace for now.</div></div><button className="button button-primary" onClick={() => showNotice('Workspace preferences saved.')} data-testid="button-save-settings"><Check /> Save</button></div></section>}{active === 'Notifications' && <section className="panel settings-section"><h2>Notifications</h2><p>Keep the signal useful, not noisy.</p><div className="settings-row"><div><div className="settings-row-title">Workspace updates</div><div className="settings-row-copy">Receive a note when important project activity lands.</div></div><button className={`switch ${updates ? 'on' : ''}`} aria-label="Toggle workspace updates" onClick={() => setUpdates(!updates)} data-testid="switch-workspace-updates" /></div></section>}{active === 'Account' && <section className="panel settings-section"><h2>Account</h2><p>Your personal workspace identity.</p><div className="settings-row"><div><div className="settings-row-title">Signed in as</div><div className="settings-row-copy">nabeen@workspace.local</div></div><span className="profile-orb">NW</span></div><div className="settings-row"><div><div className="settings-row-title">Plan</div><div className="settings-row-copy">Personal workspace · building the basics first.</div></div><span className="status-pill status-active">Active</span></div></section>}</div></div></div>;
 }
 
-function Router() {
+function HomeRoute() {
+  const { isLoaded, isSignedIn } = useAuth();
+  if (!isLoaded) {
+    return <div className="public-auth-screen"><div className="public-auth-content"><span className="public-brand"><span className="public-brand-mark"><i /></span><span>nabeen</span></span><p>Opening your workspace…</p></div></div>;
+  }
+  return isSignedIn ? <Redirect to="/agent" /> : <PublicHome />;
+}
+
+function SignInPage() {
+  return <div className="public-auth-screen"><div className="public-auth-content"><Link href="/" className="public-auth-back"><ArrowLeft /> Back to Nabeen</Link><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /></div></div>;
+}
+
+function SignUpPage() {
+  return <div className="public-auth-screen"><div className="public-auth-content"><Link href="/" className="public-auth-back"><ArrowLeft /> Back to Nabeen</Link><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} /></div></div>;
+}
+
+function SignOutButton() {
+  const { signOut } = useClerk();
+  return <button className="rail-signout" type="button" onClick={() => void signOut({ redirectUrl: basePath || '/' })} aria-label="Sign out" data-testid="button-sign-out"><LogOut /><span>Sign out</span></button>;
+}
+
+function ClerkQueryClientCacheInvalidator() {
+  const { addListener } = useClerk();
+  const previousUserId = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    const unsubscribe = addListener(({ user }) => {
+      const userId = user?.id ?? null;
+      if (previousUserId.current !== undefined && previousUserId.current !== userId) {
+        queryClient.clear();
+      }
+      previousUserId.current = userId;
+    });
+    return unsubscribe;
+  }, [addListener]);
+
+  return null;
+}
+
+function AuthenticatedPages() {
+  const { isLoaded, isSignedIn } = useAuth();
   const [notice, setNotice] = useState<Notice | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const showNotice = (message: string, tone: Notice['tone'] = 'success') => { setNotice({ message, tone }); window.setTimeout(() => setNotice(null), 3200); };
-  return <AppShell showNotice={showNotice}><Switch><Route path="/"><DashboardPage showNotice={showNotice} /></Route><Route path="/projects"><ProjectsPage showNotice={showNotice} onCreate={() => setCreateOpen(true)} /></Route><Route path="/projects/:id"><ProjectPage showNotice={showNotice} /></Route><Route path="/activity"><ActivityPage /></Route><Route path="/capabilities"><CapabilitiesPage /></Route><Route path="/settings"><SettingsPage showNotice={showNotice} /></Route><Route component={NotFound} /></Switch>{createOpen && <CreateProjectDialog open={createOpen} onClose={() => setCreateOpen(false)} showNotice={showNotice} />}{notice && <div className="notice" data-testid="status-notice"><Check style={{ color: notice.tone === 'error' ? 'hsl(var(--destructive))' : undefined }} /><span>{notice.message}</span></div>}</AppShell>;
+  if (!isLoaded) {
+    return <div className="public-auth-screen"><div className="public-auth-content"><span className="public-brand"><span className="public-brand-mark"><i /></span><span>nabeen</span></span><p>Verifying your session…</p></div></div>;
+  }
+  if (!isSignedIn) return <Redirect to="/" />;
+
+  return <AppShell showNotice={showNotice}><Switch><Route path="/agent"><AgentWorkbench /></Route><Route path="/dashboard"><DashboardPage showNotice={showNotice} /></Route><Route path="/projects"><ProjectsPage showNotice={showNotice} onCreate={() => setCreateOpen(true)} /></Route><Route path="/projects/:id"><ProjectPage showNotice={showNotice} /></Route><Route path="/activity"><ActivityPage /></Route><Route path="/capabilities"><CapabilitiesPage /></Route><Route path="/settings"><SettingsPage showNotice={showNotice} /></Route><Route component={NotFound} /></Switch>{createOpen && <CreateProjectDialog open={createOpen} onClose={() => setCreateOpen(false)} showNotice={showNotice} />}{notice && <div className="notice" data-testid="status-notice"><Check style={{ color: notice.tone === 'error' ? 'hsl(var(--destructive))' : undefined }} /><span>{notice.message}</span></div>}</AppShell>;
+}
+
+function Router() {
+  return <Switch>
+    <Route path="/" component={HomeRoute} />
+    <Route path="/sign-in/*?" component={SignInPage} />
+    <Route path="/sign-up/*?" component={SignUpPage} />
+    <Route component={AuthenticatedPages} />
+  </Switch>;
+}
+
+function ClerkProviderWithRoutes() {
+  const [, setLocation] = useLocation();
+  return <ClerkProvider
+    publishableKey={clerkPubKey}
+    proxyUrl={clerkProxyUrl}
+    appearance={clerkAppearance}
+    signInUrl={`${basePath}/sign-in`}
+    signUpUrl={`${basePath}/sign-up`}
+    localization={{
+      signIn: { start: { title: 'Welcome back to Nabeen', subtitle: 'Sign in to return to your private workbench.' } },
+      signUp: { start: { title: 'Create your Nabeen account', subtitle: 'Set up your personal coding workspace.' } },
+    }}
+    routerPush={(to) => setLocation(stripBase(to))}
+    routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+  >
+    <QueryClientProvider client={queryClient}>
+      <ClerkQueryClientCacheInvalidator />
+      <TooltipProvider>
+        <ErrorBoundary><Router /></ErrorBoundary>
+        <Toaster />
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ClerkProvider>;
 }
 
 function App() {
-  return <QueryClientProvider client={queryClient}><TooltipProvider><WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}><ErrorBoundary><Router /></ErrorBoundary></WouterRouter><Toaster /></TooltipProvider></QueryClientProvider>;
+  return <WouterRouter base={basePath}><ClerkProviderWithRoutes /></WouterRouter>;
 }
 
 export default App;

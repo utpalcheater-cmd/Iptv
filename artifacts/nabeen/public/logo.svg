@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Nabeen">
+  <rect x="4" y="4" width="112" height="112" rx="34" fill="#d96c50"/>
+  <path d="M39 76V44h8l20 21V44h9v32h-8L48 55v21z" fill="#fff9ef"/>
+  <circle cx="87" cy="82" r="5" fill="#f3d78b"/>
+</svg>
